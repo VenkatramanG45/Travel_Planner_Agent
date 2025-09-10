@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.env
+secrets/
+config/keys/*
+
+# Streamlit
+.streamlit/config.toml
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+env/
+venv/
+
+# Logs
+*.log
+
+# Hugging Face Spaces
+.huggingface/
+
+# Misc
+*.sqlite3
+*.db
+*.bak
+*.tmp
+*.swp

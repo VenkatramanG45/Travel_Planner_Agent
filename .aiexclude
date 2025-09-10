@@ -1,0 +1,4 @@
+# .aiexclude
+secrets/
+.env
+config/keys/*
