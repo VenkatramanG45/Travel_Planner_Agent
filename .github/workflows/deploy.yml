@@ -15,9 +15,10 @@ jobs:
           fetch-depth: 0
 
       - name: Push to Hub
-        uses: huggingface/hub-sync@v0.5
-        with:
-          repo_type: space
-          repo_id: ${{ secrets.HF_SPACE_ID }}
-          token: ${{ secrets.HF_TOKEN }}
-          force: true
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          git remote add hub "https://user:${HF_TOKEN}@huggingface.co/spaces/${{ secrets.HF_SPACE_ID }}"
+          git push --force hub main
