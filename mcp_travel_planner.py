@@ -23,7 +23,7 @@ async def run_mcp_travel_planner(destination: str, num_days: int, preferences: s
             env={
                 "GOOGLE_MAPS_API_KEY": google_maps_key,
             },
-            timeout_seconds=60,
+            timeout_seconds=180,
         )
 
         # Connect to Airbnb MCP server
