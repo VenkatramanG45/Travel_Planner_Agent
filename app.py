@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 import os
 
 # Load API keys from .env file
-#load_dotenv()
-groq_key = os.environ.get("GROQ_API_KEY")
-google_maps_key = os.environ.get("GOOGLE_MAPS_API_KEY")
+# Use Streamlit Cloud secrets for API keys
+groq_key = st.secrets.get("GROQ_API_KEY")
+google_maps_key = st.secrets.get("GOOGLE_MAPS_API_KEY")
 
 def run_travel_planner(destination: str, num_days: int, preferences: str, budget: int):
     """Synchronous wrapper for the async MCP travel planner."""
