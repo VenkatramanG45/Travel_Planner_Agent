@@ -2,23 +2,15 @@ from textwrap import dedent
 #from agno.agent import Agent
 from agno.tools.mcp import MultiMCPTools
 #from agno.tools.googlesearch import GoogleSearchTools
-from dotenv import load_dotenv
 import google.generativeai as genai
 import os
 
-# Load API keys from .env file
-load_dotenv()
-
-gemini_key = os.getenv("GEMINI_API_KEY")  # Load Gemini API key
-google_maps_key = os.getenv("GOOGLE_MAPS_API_KEY")  # Load Google Maps API key
-
-genai.configure(api_key=gemini_key)
-gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-
-async def run_mcp_travel_planner(destination: str, num_days: int, preferences: str, budget: int):
+async def run_mcp_travel_planner(destination: str, num_days: int, preferences: str, budget: int, gemini_key: str, google_maps_key: str):
     """Run the MCP-based travel planner agent with real-time data access."""
 
     try:
+        genai.configure(api_key=gemini_key)
+        gemini_model = genai.GenerativeModel("gemini-1.5-flash")
         # Set Google Maps API key environment variable
         os.environ["GOOGLE_MAPS_API_KEY"] = google_maps_key
 

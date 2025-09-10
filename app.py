@@ -14,9 +14,9 @@ google_maps_key = st.secrets.get("GOOGLE_MAPS_API_KEY")
 
 
 
-def run_travel_planner(destination: str, num_days: int, preferences: str, budget: int):
+def run_travel_planner(destination: str, num_days: int, preferences: str, budget: int, gemini_key: str, google_maps_key: str):
     """Synchronous wrapper for the async MCP travel planner."""
-    return asyncio.run(run_mcp_travel_planner(destination, num_days, preferences, budget))
+    return asyncio.run(run_mcp_travel_planner(destination, num_days, preferences, budget, gemini_key, google_maps_key))
     
 # -------------------- Streamlit App --------------------
 
@@ -100,7 +100,9 @@ else:
                             destination=destination,
                             num_days=num_days,
                             preferences=preferences,
-                            budget=budget
+                            budget=budget,
+                            gemini_key=groq_key,
+                            google_maps_key=google_maps_key
                         )
 
                         # Store the response in session state
