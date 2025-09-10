@@ -1,10 +1,18 @@
 #import re
 import asyncio
 import streamlit as st
+import os
+import shutil
+
+st.write("--- DEBUG INFO ---")
+st.write(f"PATH: {os.environ.get('PATH')}")
+npx_path = shutil.which("npx")
+st.write(f"shutil.which('npx'): {npx_path}")
+st.write("--- END DEBUG INFO ---")
+
 from datetime import date, datetime
 from mcp_travel_planner import run_mcp_travel_planner
 from ics_generator import generate_ics_content
-import os
 
 # Load API keys from Streamlit secrets
 # For local development, create a .streamlit/secrets.toml file.
