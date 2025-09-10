@@ -12,6 +12,7 @@ config/keys/*
 
 # Streamlit
 .streamlit/config.toml
+.streamlit/secrets.toml
 
 # Jupyter Notebooks
 .ipynb_checkpoints/
