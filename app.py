@@ -4,11 +4,10 @@ import streamlit as st
 from datetime import date, datetime
 from mcp_travel_planner import run_mcp_travel_planner
 from ics_generator import generate_ics_content
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 import os
 
 # Load API keys from .env file
-load_dotenv()
 groq_key = os.getenv("GROQ_API_KEY")
 google_maps_key = os.getenv("GOOGLE_MAPS_API_KEY")
 
