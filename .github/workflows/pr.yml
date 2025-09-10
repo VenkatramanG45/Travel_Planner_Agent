@@ -28,6 +28,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Lint with ruff
+        run: |
+          pip install ruff
+          ruff check .
+
       # Add your test commands here, e.g. pytest
       # - name: Run tests
       #   run: pytest
