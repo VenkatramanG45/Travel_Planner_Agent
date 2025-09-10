@@ -4,13 +4,15 @@ import streamlit as st
 from datetime import date, datetime
 from mcp_travel_planner import run_mcp_travel_planner
 from ics_generator import generate_ics_content
-from dotenv import load_dotenv
 import os
 
-# Load API keys from .env file
-# Use Streamlit Cloud secrets for API keys
-groq_key = st.secrets.get("GROQ_API_KEY")
+# Load API keys from Streamlit secrets
+# For local development, create a .streamlit/secrets.toml file.
+# See https://docs.streamlit.io/library/advanced-features/secrets-management
+groq_key = st.secrets.get("GEMINI_API_KEY")
 google_maps_key = st.secrets.get("GOOGLE_MAPS_API_KEY")
+
+
 
 def run_travel_planner(destination: str, num_days: int, preferences: str, budget: int):
     """Synchronous wrapper for the async MCP travel planner."""
@@ -35,7 +37,7 @@ st.caption("Plan your next adventure with AI Travel Planner using MCP servers fo
 
 # Check if API keys are loaded
 if not groq_key or not google_maps_key:
-    st.error("API keys are not configured. Please add them to the .env file.")
+    st.error("API keys are not configured. Please add them to your Streamlit Cloud secrets.")
 else:
     # Main input section
     st.header("🌍 Trip Details")
