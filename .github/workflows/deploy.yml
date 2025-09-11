@@ -1,86 +1,56 @@
-name: Deploy to Google Cloud Function
+name: Deploy Cloud Function
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
-
-env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  FUNCTION_NAME: mcp-travel-planner
-  REGION: us-central1
+    branches: [ main ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
-      
-      
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.xml
-
   deploy:
-    needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
     
     steps:
-      - uses: actions/checkout@v4
-      
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v2'
-        with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
-      
-      - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v2'
-      
-      - name: 'Deploy Function'
-        uses: 'google-github-actions/deploy-cloud-functions@v3'
-        with:
-          name: ${{ env.FUNCTION_NAME }}
-          runtime: 'python311'
-          entry_point: 'mcp_travel_planner_http'
-          source: '.'
-          trigger_http: true
-          allow_unauthenticated: true
-          region: ${{ env.REGION }}
-          env_vars: |
-            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY_SECRET }}
-            GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY_SECRET }}
-            ENVIRONMENT=production
-          memory: 256Mi
-          timeout: 540s
-          max_instances: 100
-          min_instances: 0
-      
-      - name: 'Test deployed function'
-        run: |
-          FUNCTION_URL=$(gcloud functions describe ${{ env.FUNCTION_NAME }} \
-            --region=${{ env.REGION }} \
-            --format='value(httpsTrigger.url)')
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Deploy to Cloud Functions
+      uses: google-github-actions/deploy-cloud-functions@v3
+      with:
+        project_id: travel-planner-agent-471801
+        region: us-central1
+        name: travelagent
+        runtime: python39  # or your preferred runtime
+        entry_point: main  # your function entry point
+        source_dir: ./  # directory containing your function code
+        
+        # Environment and scaling settings
+        environment_variables: |
+          ENV=production
           
-          curl -f "$FUNCTION_URL/health" || exit 1
-          echo "Function deployed successfully at: $FUNCTION_URL"
-      
-      - name: 'Create deployment notification'
-        if: success()
-        run: |
-          echo "🚀 Deployment successful!"
-          echo "Function URL: $(gcloud functions describe ${{ env.FUNCTION_NAME }} --region=${{ env.REGION }} --format='value(httpsTrigger.url)')"
+        # HTTP trigger settings (for HTTP functions)
+        # For HTTP functions, you don't need event_trigger_* parameters
+        ingress_settings: ALLOW_ALL
+        
+        # For event-driven functions, use these instead:
+        # event_trigger_type: google.cloud.pubsub.topic.v1.messagePublished
+        # event_trigger_pubsub_topic: projects/travel-planner-agent-471801/topics/your-topic
+        
+        # Scaling and resource settings
+        min_instance_count: 0
+        max_instance_count: 10
+        max_instance_request_concurrency: 80
+        cpu: "1"
+        memory: 256Mi
+        service_timeout: 60s
+        
+        # Service account for the function runtime
+        service_account: travelagent-sa@travel-planner-agent-471801.iam.gserviceaccount.com
