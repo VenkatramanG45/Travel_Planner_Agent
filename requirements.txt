@@ -3,3 +3,4 @@ agno
 icalendar
 Flask
 functions-framework
+streamlit

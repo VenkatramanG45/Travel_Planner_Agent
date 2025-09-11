@@ -1,1 +1,0 @@
-# This file is no longer used for Cloud Function deployment. The main logic is in mcp_travel_planner.py
