@@ -18,7 +18,7 @@ jobs:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
     - name: 'Deploy Function'
-      uses: 'google-github-actions/deploy-cloud-function@v1'
+      uses: 'google-github-actions/deploy-cloud-functions@v1'
       with:
         name: 'mcp-travel-planner'
         runtime: 'python311'
