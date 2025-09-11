@@ -4,6 +4,10 @@ from agno.tools.mcp import MultiMCPTools
 #from agno.tools.googlesearch import GoogleSearchTools
 import google.generativeai as genai
 import os
+from flask import Request, Response
+from ics_generator import generate_ics_content
+import asyncio
+import functions_framework
 
 async def run_mcp_travel_planner(destination: str, num_days: int, preferences: str, budget: int, gemini_key: str, google_maps_key: str):
     """Run the MCP-based travel planner agent with real-time data access."""
@@ -81,3 +85,49 @@ async def run_mcp_travel_planner(destination: str, num_days: int, preferences: s
 
     finally:
         await mcp_tools.close()
+
+@functions_framework.http
+def mcp_travel_planner_http(request: Request):
+    """HTTP Cloud Function to generate a travel itinerary and ICS file."""
+    try:
+        request_json = request.get_json(silent=True)
+        if not request_json:
+            return Response("Please provide a JSON request body.", status=400)
+
+        destination = request_json.get("destination")
+        num_days = request_json.get("num_days")
+        preferences = request_json.get("preferences")
+        budget = request_json.get("budget")
+        start_date_str = request_json.get("start_date") # Assuming YYYY-MM-DD
+
+        if not all([destination, num_days, preferences, budget, start_date_str]):
+            return Response("Missing one or more required parameters: destination, num_days, preferences, budget, start_date.", status=400)
+
+        gemini_key = os.environ.get("GEMINI_API_KEY")
+        google_maps_key = os.environ.get("GOOGLE_MAPS_API_KEY")
+
+        if not gemini_key or not google_maps_key:
+            return Response("API keys are not configured in environment variables.", status=500)
+
+        # Convert start_date string to datetime object
+        from datetime import datetime
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+
+        # Run the travel planner asynchronously
+        itinerary_text = asyncio.run(run_mcp_travel_planner(
+            destination=destination,
+            num_days=num_days,
+            preferences=preferences,
+            budget=budget,
+            gemini_key=gemini_key,
+            google_maps_key=google_maps_key
+        ))
+
+        # Generate ICS content
+        ics_content = generate_ics_content(itinerary_text, start_date)
+
+        # Return ICS file as response
+        return Response(ics_content, mimetype="text/calendar", headers={'Content-Disposition': 'attachment; filename=travel_itinerary.ics'})
+
+    except Exception as e:
+        return Response(f"Error: {str(e)}", status=500)

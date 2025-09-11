@@ -1,74 +1,32 @@
-name: Deploy to Google Cloud
+name: Deploy to Google Cloud Function
 
 on:
   push:
     branches:
       - main
 
-env:
-  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }} # Your Google Cloud project ID
-  GCP_REGION: 'us-central1' # Choose your preferred region
-
 jobs:
-  deploy-function:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud
-        id: 'auth'
-        uses: 'google-github-actions/auth@v2'
-        with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      - name: Create .env.yaml
-        run: |
-          echo "GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'" > .env.yaml
-          echo "GOOGLE_MAPS_API_KEY: '${{ secrets.GOOGLE_MAPS_API_KEY }}'" >> .env.yaml
-
-      - name: Deploy Cloud Function
-        id: 'deploy'
-        uses: 'google-github-actions/deploy-cloud-functions@v2'
-        with:
-          name: 'mcp-travel-planner'
-          runtime: 'python311'
-          entry_point: 'mcp_travel_planner_http'
-          source_dir: './'
-          region: '${{ env.GCP_REGION }}'
-          project_id: '${{ env.GCP_PROJECT_ID }}'
-          env_vars_file: '.env.yaml'
-
-      - name: Get Cloud Function URL
-        id: 'get-url'
-        run: |
-          echo "url=$(gcloud functions describe mcp-travel-planner --project ${{ env.GCP_PROJECT_ID }} --region ${{ env.GCP_REGION }} --format='value(httpsTrigger.url)')" >> $GITHUB_OUTPUT
-
-    outputs:
-      function_url: ${{ steps.get-url.outputs.url }}
-
-  deploy-frontend:
-    needs: deploy-function
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Authenticate to Google Cloud
-        id: 'auth'
-        uses: 'google-github-actions/auth@v2'
-        with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
-
-      - name: Deploy to Cloud Run
-        id: 'deploy'
-        uses: 'google-github-actions/deploy-cloud-run@v2'
-        with:
-          service: 'mcp-travel-planner-frontend'
-          region: '${{ env.GCP_REGION }}'
-          project_id: '${{ env.GCP_PROJECT_ID }}'
-          source: '.'
-          env_vars:
-            CLOUD_FUNCTION_URL: ${{ needs.deploy-function.outputs.function_url }}
-            GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-            GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+    - name: 'Deploy Function'
+      uses: 'google-github-actions/deploy-cloud-function@v1'
+      with:
+        name: 'mcp-travel-planner'
+        runtime: 'python311'
+        entry_point: 'mcp_travel_planner_http'
+        trigger_http: true
+        allow_unauthenticated: true
+        env_vars: |
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY_SECRET }}
+          GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY_SECRET }}
+        region: 'us-central1'
+        source: '.'
